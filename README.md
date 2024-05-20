@@ -40,3 +40,5 @@ The system can be executed from the ```main.py```.
 * ```player.py```: Contains the class ```Player```.
 * ```tools```: Helper functions.
 * ```resources```: Contains template images, input video.
+
+carlie
