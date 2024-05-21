@@ -1,0 +1,16 @@
+name: baskettracker
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - numpy
+  - matplotlib
+  - scipy
+  - sk-video
+  - opencv
+  - cudatoolkit=11.8  # Specifying CUDA version directly
+  - git
+  - pip
