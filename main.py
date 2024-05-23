@@ -1,4 +1,5 @@
 import os
+import ipdb
 
 from matplotlib import pyplot as plt
 
@@ -6,7 +7,6 @@ from ball_detect_track import BallDetectTrack
 from player import Player
 from rectify_court import *
 from video_handler import *
-
 
 def get_frames(video_path, central_frame, mod):
     frames = []
@@ -54,12 +54,15 @@ if __name__ == '__main__':
         current_mosaic1 = collage(frames[central_frame:], direction=1)
         current_mosaic2 = collage(frames_flipped, direction=-1)
         pano = collage([cv2.flip(current_mosaic2, 1)[:, :-10], current_mosaic1])
-
+        cv2.imwrite("resources/tempcollage.png", cv2.flip(current_mosaic2, 1)[:, :-10])
+        cv2.imwrite("resources/collage1.png", current_mosaic1)
+        cv2.imwrite("resources/collage2.png", current_mosaic2)
         cv2.imwrite("resources/pano.png", pano)
+    
 
     if os.path.exists('resources/pano_enhanced.png'):
         pano_enhanced = cv2.imread("resources/pano_enhanced.png")
-        plt_plot(pano, "Panorama")
+        plt_plot(pano, save_path=None, title="Panorama")
     else:
         pano_enhanced = pano
         for file in os.listdir("resources/snapshots/"):
@@ -70,11 +73,13 @@ if __name__ == '__main__':
     ###################################
     pano_enhanced = np.vstack((pano_enhanced,
                                np.zeros((100, pano_enhanced.shape[1], pano_enhanced.shape[2]), dtype=pano.dtype)))
+    #cv2.imwrite("resources/debugging_images/pano_enhanced_padded.png", pano_enhanced)
     img = binarize_erode_dilate(pano_enhanced, plot=False)
     simplified_court, corners = (rectangularize_court(img, plot=False))
     simplified_court = 255 - np.uint8(simplified_court)
 
-    plt_plot(simplified_court, "Corner Detection", cmap="gray", additional_points=corners)
+    plt_plot(simplified_court, "Corner Detection", cmap="gray", additional_points=corners, 
+             save_path = "resources/debugging_images/simplified_court_corner_detection.png")
 
     rectified = rectify(pano_enhanced, corners, plot=False)
 

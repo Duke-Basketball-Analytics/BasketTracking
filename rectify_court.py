@@ -93,11 +93,13 @@ def add_frame(frame, pano, pano_enhanced, plot=False):
     return avg_pano
 
 
-def binarize_erode_dilate(img, plot=False):
+def binarize_erode_dilate(img, plot=False, save=False):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     th, img_otsu = cv2.threshold(gray, thresh=100, maxval=255, type=cv2.THRESH_OTSU)
 
-    if plot: plt_plot(img_otsu, "Panorama after Otsu", cmap="gray")
+    if plot: plt_plot(img_otsu, title="Panorama after Otsu", cmap="gray", 
+                      save_path = "resources/debugging_images/pano_after_otsu2.png")
+    #if save: cv2.imwrite("resources/debugging_images/pano_after_otsu.png", img_otsu)
 
     kernel = np.array([[0, 0, 0],
                        [1, 1, 1],
@@ -105,7 +107,9 @@ def binarize_erode_dilate(img, plot=False):
     img_otsu = cv2.erode(img_otsu, kernel, iterations=20)
     img_otsu = cv2.dilate(img_otsu, kernel, iterations=20)
 
-    if plot: plt_plot(img_otsu, "After Erosion-Dilation", cmap="gray")
+    if plot: plt_plot(img_otsu, title="After Erosion-Dilation", cmap="gray",
+                      save_path = "resources/debugging_images/pano_after_erosion_dilation2.png")
+    #if save: cv2.imwrite("resources/debugging_images/pano_after_erosion_dilation.png", img_otsu)
     return img_otsu
 
 
@@ -130,7 +134,8 @@ def rectangularize_court(pano, plot=False):
             contours_court.append(c)
 
     pano = mask
-    if plot: plt_plot(pano, "After Blob Detection", cmap="gray")
+    if plot: plt_plot(pano, title="After Blob Detection", cmap="gray",
+                      save_path="resources/debugging_images/rectangle1_after_blob_detection.png")
 
     # pano = 255 - pano
     contours_court = contours_court[0]
@@ -139,8 +144,9 @@ def rectangularize_court(pano, plot=False):
     # convex hull
     hull = cv2.convexHull(contours_court)
     cv2.drawContours(pano, [hull], 0, 100, 2)
-    if plot: plt_plot(pano, "After ConvexHull", cmap="gray",
-                      additional_points=hull.reshape((-1, 2)))
+    if plot: plt_plot(pano, title="After ConvexHull", cmap="gray",
+                      additional_points=hull.reshape((-1, 2)),
+                      save_path="resources/debugging_images/rectangle2_after_convexhull.png")
 
     # fitting a poly to the hull
     epsilon = 0.01 * cv2.arcLength(hull, True)
@@ -150,8 +156,10 @@ def rectangularize_court(pano, plot=False):
     cv2.drawContours(simple_court, [approx], 0, 255, 3)
 
     if plot:
-        plt_plot(pano, "After Rectangular Fitting", cmap="gray")
-        plt_plot(simple_court, "Rectangularized Court", cmap="gray")
+        plt_plot(pano, title="After Rectangular Fitting", cmap="gray",
+                 save_path="resources/debugging_images/rectangle3_after_rectangular_fitting.png")
+        plt_plot(simple_court, title="Rectangularized Court", cmap="gray",
+                 save_path="resources/debugging_images/rectangle4_rectangularized_court.png")
         print("simplified contour has", len(approx), "points")
 
     return simple_court, corners
@@ -204,6 +212,42 @@ def rectify(pano_enhanced, corners, plot=False):
 
     # rectified = np.hstack((h1, cv2.resize(h2, (int((h2.shape[0] / h1.shape[0]) * h1.shape[1]), h1.shape[0]))))
     rectified = np.hstack((h1, cv2.resize(h2, (h1.shape[1], h1.shape[0]))))
-    cv2.imwrite("rectified.png", rectified)
-    if plot: plt_plot(cv2.cvtColor(rectified, cv2.COLOR_BGR2RGB))
+    cv2.imwrite("resources/rectified.png", rectified)
+    if plot: plt_plot(cv2.cvtColor(rectified, cv2.COLOR_BGR2RGB),
+                      save_path="resources/debugging_images/rectified_court.png")
     return rectified
+        
+
+if __name__ == "__main__":
+    
+    func = 'rectify'
+
+    if func == 'binarize':
+        img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
+        if img is None:
+            print("Failed to load the image.")
+            exit(1)
+        img_otsu = binarize_erode_dilate(img, plot=True)
+
+    elif func == "rectangle":
+        img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
+        if img is None:
+            print("Failed to load the image.")
+            exit(1)
+        img_otsu = binarize_erode_dilate(img, plot=False)
+        simplified_court, corners = rectangularize_court(img_otsu, plot=False)
+        print(corners)
+        simplified_court = 255 - np.uint8(simplified_court)
+        plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
+             save_path = "resources/debugging_images/simplified_court_corner_detection.png")
+        
+    elif func == "rectify":
+        img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
+        if img is None:
+            print("Failed to load the image.")
+            exit(1)
+        img_otsu = binarize_erode_dilate(img, plot=False)
+        simplified_court, corners = rectangularize_court(img_otsu, plot=False)
+        simplified_court = 255 - np.uint8(simplified_court)
+        rectified = rectify(img, corners, plot=True)
+        
