@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import ipdb
 from tools.plot_tools import plt_plot
+from main import *
 
 FLANN_INDEX_KDTREE = 1
 index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
@@ -220,9 +221,14 @@ def rectify(pano_enhanced, corners, plot=False):
 
 if __name__ == "__main__":
     
-    func = 'homography'
+    func = 'collage'
 
-    if func == 'binarize':
+    if func == 'collage':
+        frames = get_frames('resources/Short4Mosaicing.mp4', mod=3)
+        full_pano = collage(frames, direction=1)
+        cv2.imwrite("resources/debugging_images/collage_pano_onetake.png", full_pano)
+
+    elif func == 'binarize':
         img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
         if img is None:
             print("Failed to load the image.")

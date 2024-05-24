@@ -30,9 +30,9 @@ class VideoHandler:
             if not ok:
                 break
             else:
-                if 0 <= time_index <= 20:
+                if 0 <= time_index <= 230:
 
-                    print("\r Computing DEMO: " + str(int(100 * time_index / 20)) + "%",
+                    print("\r Computing DEMO: " + str(int(100 * time_index / 230)) + "%",
                           flush=True, end='')
 
                     frame = frame[TOPCUT:, :]

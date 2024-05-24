@@ -8,7 +8,7 @@ from player import Player
 from rectify_court import *
 from video_handler import *
 
-def get_frames(video_path, central_frame, mod):
+def get_frames(video_path, mod):
     frames = []
     cap = cv2.VideoCapture(video_path)
     index = 0
@@ -31,9 +31,9 @@ def get_frames(video_path, central_frame, mod):
     cv2.destroyAllWindows()
 
     print(f"Number of frames : {len(frames)}")
-    plt.title(f"Centrale {frames[central_frame].shape}")
-    plt.imshow(frames[central_frame])
-    plt.show()
+    # plt.title(f"Centrale {frames[central_frame].shape}")
+    # plt.imshow(frames[central_frame])
+    # plt.show()
 
     return frames
 
@@ -48,18 +48,18 @@ if __name__ == '__main__':
     if os.path.exists('resources/pano.png'):
         pano = cv2.imread("resources/pano.png")
     else:
+        #central_frame = 36
+        frames = get_frames('resources/Short4Mosaicing.mp4', mod=3)
         central_frame = 36
-        frames = get_frames('resources/Short4Mosaicing.mp4', central_frame, mod=3)
         frames_flipped = [cv2.flip(frames[i], 1) for i in range(central_frame)]
         current_mosaic1 = collage(frames[central_frame:], direction=1)
         current_mosaic2 = collage(frames_flipped, direction=-1)
         pano = collage([cv2.flip(current_mosaic2, 1)[:, :-10], current_mosaic1])
-        cv2.imwrite("resources/tempcollage.png", cv2.flip(current_mosaic2, 1)[:, :-10])
-        cv2.imwrite("resources/collage1.png", current_mosaic1)
-        cv2.imwrite("resources/collage2.png", current_mosaic2)
-        cv2.imwrite("resources/pano.png", pano)
+        cv2.imwrite("resources/tempcollage_1.png", cv2.flip(current_mosaic2, 1)[:, :-10])
+        cv2.imwrite("resources/collage1_1.png", current_mosaic1)
+        cv2.imwrite("resources/collage2_1.png", current_mosaic2)
+        cv2.imwrite("resources/pano_1.png", pano)
     
-
     if os.path.exists('resources/pano_enhanced.png'):
         pano_enhanced = cv2.imread("resources/pano_enhanced.png")
         plt_plot(pano, save_path=None, title="Panorama")
@@ -104,6 +104,6 @@ if __name__ == '__main__':
     ball_detect_track = BallDetectTrack(players)
     video_handler = VideoHandler(pano_enhanced, video, ball_detect_track, feet_detector, map)
 
-    ipdb.set_trace()
+    #ipdb.set_trace()
     
     video_handler.run_detectors()
