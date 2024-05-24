@@ -78,7 +78,7 @@ if __name__ == '__main__':
     simplified_court, corners = (rectangularize_court(img, plot=False))
     simplified_court = 255 - np.uint8(simplified_court)
 
-    plt_plot(simplified_court, "Corner Detection", cmap="gray", additional_points=corners, 
+    plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
              save_path = "resources/debugging_images/simplified_court_corner_detection.png")
 
     rectified = rectify(pano_enhanced, corners, plot=False)
@@ -89,6 +89,8 @@ if __name__ == '__main__':
     map = cv2.resize(map, (int(scale * map.shape[1]), int(scale * map.shape[0])))
     resized = cv2.resize(rectified, (map.shape[1], map.shape[0]))
     map = cv2.resize(map, (rectified.shape[1], rectified.shape[0]))
+
+    cv2.imwrite("resources/debugging_images/map.png", map)
 
     video = cv2.VideoCapture("resources/Short4Mosaicing.mp4")
 
@@ -101,4 +103,7 @@ if __name__ == '__main__':
     feet_detector = FeetDetector(players)
     ball_detect_track = BallDetectTrack(players)
     video_handler = VideoHandler(pano_enhanced, video, ball_detect_track, feet_detector, map)
+
+    ipdb.set_trace()
+    
     video_handler.run_detectors()

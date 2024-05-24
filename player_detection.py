@@ -90,7 +90,7 @@ class FeetDetector:
 
         '''v = Visualizer(frame[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
         out = v.draw_instance_predictions(outputs_seg["instances"].to("cpu"))
-        plt_plot(out.get_image()[:, :, ::-1])'''
+        plt_plot(out.get_image()[:, :, ::-1], save_path="resources/debugging_images/detectron_frame.png")'''
 
         indexes_ppl = np.array(
             [np.array(np.where(p == True)).T for p in ppl])

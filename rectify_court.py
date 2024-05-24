@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import ipdb
 from tools.plot_tools import plt_plot
 
 FLANN_INDEX_KDTREE = 1
@@ -220,7 +220,7 @@ def rectify(pano_enhanced, corners, plot=False):
 
 if __name__ == "__main__":
     
-    func = 'rectify'
+    func = 'homography'
 
     if func == 'binarize':
         img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
@@ -237,9 +237,9 @@ if __name__ == "__main__":
         img_otsu = binarize_erode_dilate(img, plot=False)
         simplified_court, corners = rectangularize_court(img_otsu, plot=False)
         print(corners)
-        simplified_court = 255 - np.uint8(simplified_court)
-        plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
-             save_path = "resources/debugging_images/simplified_court_corner_detection.png")
+        #simplified_court = 255 - np.uint8(simplified_court)
+        #plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
+        #     save_path = "resources/debugging_images/simplified_court_corner_detection.png")
         
     elif func == "rectify":
         img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
@@ -250,4 +250,18 @@ if __name__ == "__main__":
         simplified_court, corners = rectangularize_court(img_otsu, plot=False)
         simplified_court = 255 - np.uint8(simplified_court)
         rectified = rectify(img, corners, plot=True)
-        
+    
+    elif func == "homography":
+        img = cv2.imread("resources/debugging_images/pano_enhanced_padded.png")
+        if img is None:
+            print("Failed to load the image.")
+            exit(1)
+        img_otsu = binarize_erode_dilate(img, plot=False)
+        simplified_court, corners = rectangularize_court(img_otsu, plot=False)
+        #print(corners)
+
+        #ipdb.set_trace()
+
+        warped, M = homography(corners, img)
+        plt_plot(warped, save_path='resources/debugging_images/homography_warped_700.png')
+        print(M)
