@@ -23,16 +23,16 @@ class VideoHandler:
         self.map_2d = map_2d
 
     def run_detectors(self):
-        writer = skvideo.io.FFmpegWriter("demo2.mp4")
+        writer = skvideo.io.FFmpegWriter("demo.mp4")
         time_index = 0
         while self.video.isOpened():
             ok, frame = self.video.read()
             if not ok:
                 break
             else:
-                if 0 <= time_index <= 230:
+                if 0 <= time_index <= 20:
 
-                    print("\r Computing DEMO: " + str(int(100 * time_index / 200)) + "%",
+                    print("\r Computing DEMO: " + str(int(100 * time_index / 20)) + "%",
                           flush=True, end='')
 
                     frame = frame[TOPCUT:, :]
@@ -43,9 +43,9 @@ class VideoHandler:
                                                                          map_2d_text, time_index)
                     vis = np.vstack((frame, cv2.resize(map_2d_text, (frame.shape[1], frame.shape[1] // 2))))
 
-                    cv2.imshow("Tracking", vis)
-                    plt_plot(vis)
-                    # writer.writeFrame(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
+                    #cv2.imshow("Tracking", vis)
+                    #plt_plot(vis, save_path="resources/debugging_images/run_detectors_frame1.png")
+                    writer.writeFrame(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
 
                     k = cv2.waitKey(1) & 0xff
                     if k == 27:

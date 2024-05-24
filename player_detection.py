@@ -92,8 +92,7 @@ class FeetDetector:
         out = v.draw_instance_predictions(outputs_seg["instances"].to("cpu"))
         plt_plot(out.get_image()[:, :, ::-1], save_path="resources/debugging_images/detectron_frame.png")'''
 
-        indexes_ppl = np.array(
-            [np.array(np.where(p == True)).T for p in ppl])
+        indexes_ppl = [np.array(np.where(p == True)).T for p in ppl]
         # returns two np arrays per person, one for x one for y
 
         # calculate estimated position of players in the 2D map
