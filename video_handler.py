@@ -23,14 +23,14 @@ class VideoHandler:
         self.map_2d = map_2d
 
     def run_detectors(self):
-        writer = skvideo.io.FFmpegWriter("demo.mp4")
+        writer = skvideo.io.FFmpegWriter("test.mp4")
         time_index = 0
         while self.video.isOpened():
             ok, frame = self.video.read()
             if not ok:
                 break
             else:
-                if 0 <= time_index <= 230:
+                if 0 <= time_index <= 3:
 
                     print("\r Computing DEMO: " + str(int(100 * time_index / 230)) + "%",
                           flush=True, end='')

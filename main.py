@@ -104,6 +104,6 @@ if __name__ == '__main__':
     ball_detect_track = BallDetectTrack(players)
     video_handler = VideoHandler(pano_enhanced, video, ball_detect_track, feet_detector, map)
 
-    #ipdb.set_trace()
+    ipdb.set_trace()
     
     video_handler.run_detectors()
