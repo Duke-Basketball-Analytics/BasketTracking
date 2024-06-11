@@ -31,7 +31,8 @@ def collage(frames, direction=1, plot=False):
         for m, n in matches:
             if m.distance < 0.7 * n.distance:
                 good.append(m)
-
+    
+        #ipdb.set_trace()
         # Finding an homography
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -44,16 +45,20 @@ def collage(frames, direction=1, plot=False):
 
         result[:current_mosaic.shape[0], :current_mosaic.shape[1]] = current_mosaic
         current_mosaic = result
+        if i%10 == 0 and plot:
+            plt_plot(current_mosaic, save_path=f"resources/OFFENSE-40_richmond/before_blackcutout_{i}.png")
 
-        # removing black part of the collage
+        #removing black part of the collage
         for j in range(len(current_mosaic[0])):
             if np.sum(current_mosaic[:, j]) == 0:
                 current_mosaic = current_mosaic[:, :j - 50]
                 break
 
-        if plot:
-            plt_plot(current_mosaic)
-
+        if i%10 == 0 and plot:
+            plt_plot(current_mosaic, save_path = f"resources/OFFENSE-40_richmond/after_blackcutout_{i}.png")
+        #ipdb.set_trace()
+    if plot:
+        plt_plot(current_mosaic, save_path = f"resources/OFFENSE-40_richmond/final_mosaic.png")
     return current_mosaic
 
 

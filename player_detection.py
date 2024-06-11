@@ -73,7 +73,6 @@ class FeetDetector:
 
     def get_players_pos(self, M, M1, frame, timestamp, map_2d):
         warped_kpts = []
-        ipdb.set_trace()
         outputs_seg = self.predictor_seg(frame)
 
         indices = outputs_seg["instances"].pred_classes.cpu().numpy()
@@ -94,7 +93,6 @@ class FeetDetector:
         out = v.draw_instance_predictions(outputs_seg["instances"].to("cpu"))
         plt_plot(out.get_image()[:, :, ::-1], save_path="resources/debugging_images/player_detection_bbox.png")'''
         
-        ipdb.set_trace()
         indexes_ppl = [np.array(np.where(p == True)).T for p in ppl]
         # returns two np arrays per person, one for x one for y
 
@@ -143,7 +141,6 @@ class FeetDetector:
                     cv2.circle(frame, (keypoint[head, 1], keypoint[foot, 0]), 2, color, 5)
         final_boxes_array = np.array(final_boxes)
 
-        ipdb.set_trace()
         for kpt in warped_kpts:
             (homo, color, color_key, bbox) = kpt
             # updates if possible the player position and bbox

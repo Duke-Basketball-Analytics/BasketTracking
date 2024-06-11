@@ -3,7 +3,7 @@ from ball_detect_track import *
 
 import skvideo.io
 
-TOPCUT = 320
+TOPCUT = 0
 
 FLANN_INDEX_KDTREE = 1
 index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
@@ -23,20 +23,22 @@ class VideoHandler:
         self.map_2d = map_2d
 
     def run_detectors(self):
-        writer = skvideo.io.FFmpegWriter("test.mp4")
+        writer = skvideo.io.FFmpegWriter("resources/debugging_videos/test2.mp4")
         time_index = 0
+        homography_matrices = []
         while self.video.isOpened():
             ok, frame = self.video.read()
             if not ok:
                 break
             else:
-                if 0 <= time_index <= 3:
+                if 0 <= time_index <= 230:
 
                     print("\r Computing DEMO: " + str(int(100 * time_index / 230)) + "%",
                           flush=True, end='')
 
                     frame = frame[TOPCUT:, :]
                     M = self.get_homography(frame, self.des1, self.kp1)
+                    homography_matrices.append(M)
                     frame, self.map_2d, map_2d_text = self.feet_detector.get_players_pos(M, self.M1, frame, time_index,
                                                                                          self.map_2d)
                     frame, ball_map_2d = self.ball_detector.ball_tracker(M, self.M1, frame, self.map_2d.copy(),
@@ -51,6 +53,7 @@ class VideoHandler:
                     if k == 27:
                         break
             time_index += 1
+        ipdb.set_trace()
         self.video.release()
         writer.close()
         cv2.destroyAllWindows()
