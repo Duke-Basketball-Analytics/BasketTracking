@@ -14,10 +14,11 @@ flann = cv2.FlannBasedMatcher(index_params, search_params)
 class VideoHandler:
     def __init__(self, pano, video, ball_detector, feet_detector, map_2d):
         # Anytime we use M1 we need to use Ms first with destination size == scale*pano dimensions
-        #self.Ms = np.load("resources/OFFENSE-40_richmond/scaling_matrix_033.npy")
+        self.Ms = np.load("resources/OFFENSE-40_richmond/scaling_matrix_033.npy")
         # OSU_Pano_Rectify1 has output dimensions (960,540)
-        #self.M1 = np.load("resources/OFFENSE-40_richmond/OSU_Pano_Rectify1.npy")
-        self.M1 = np.load("Rectify1.npy")
+        self.M1 = np.load("resources/OFFENSE-40_richmond/OSU_Pano_Rectify1.npy")
+        # Original homography matrix with template video
+        #self.M1 = np.load("Rectify1.npy")
         self.sift = cv2.xfeatures2d.SIFT_create()
         self.pano = pano
         self.video = video
@@ -43,9 +44,9 @@ class VideoHandler:
                     frame = frame[TOPCUT:, :]
                     M = self.get_homography(frame, self.des1, self.kp1)
                     homography_matrices.append(M)
-                    frame, self.map_2d, map_2d_text = self.feet_detector.get_players_pos(M, self.M1, frame, time_index,
+                    frame, self.map_2d, map_2d_text = self.feet_detector.get_players_pos(M, self.M1, self.Ms, frame, time_index,
                                                                                          self.map_2d)
-                    frame, ball_map_2d = self.ball_detector.ball_tracker(M, self.M1, frame, self.map_2d.copy(),
+                    frame, ball_map_2d = self.ball_detector.ball_tracker(M, self.M1, self.Ms, frame, self.map_2d.copy(),
                                                                          map_2d_text, time_index)
                     vis = np.vstack((frame, cv2.resize(map_2d_text, (frame.shape[1], frame.shape[1] // 2))))
 

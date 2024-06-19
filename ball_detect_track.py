@@ -63,7 +63,7 @@ class BallDetectTrack:
                             return bb
         return None
 
-    def ball_tracker(self, M, M1, frame, map_2d, map_2d_text, timestamp):
+    def ball_tracker(self, M, M1, Ms, frame, map_2d, map_2d_text, timestamp):
 
         if self.do_detection:
             bbox = self.ball_detection("resources/ball/", frame)
@@ -103,7 +103,7 @@ class BallDetectTrack:
                 cv2.circle(map_2d_text, (max_score[0].positions[timestamp]), 27, (0, 0, 255), 10)
 
             if self.check_track > 0:
-                homo = M1 @ (M @ ball_center.reshape((3, -1)))
+                homo = M1 @ (Ms @ (M @ ball_center.reshape((3, -1))))
                 homo = np.int32(homo / homo[-1]).ravel()
                 cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
                 cv2.circle(map_2d, (homo[0], homo[1]), 10, (0, 0, 255), 5)  # for the ball on the 2D map

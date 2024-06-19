@@ -72,7 +72,7 @@ class FeetDetector:
         # return the intersection over union value
         return iou
 
-    def get_players_pos(self, M, M1, frame, timestamp, map_2d, only_mask=False):
+    def get_players_pos(self, M, M1, Ms, frame, timestamp, map_2d, only_mask=False):
         warped_kpts = []
         outputs_seg = self.predictor_seg(frame)
 
@@ -134,7 +134,7 @@ class FeetDetector:
                 foot = int(np.argmax(keypoint[:, 0]))
 
                 kpt = np.array([keypoint[head, 1], keypoint[foot, 0], 1])  # perspective space
-                homo = M1 @ (M @ kpt.reshape((3, -1)))
+                homo = M1 @ (Ms @ (M @ kpt.reshape((3, -1)))) ###### ADDED MS
                 homo = np.int32(homo / homo[-1]).ravel()
                 # homo = [vertical pos, horizontal pos]
                 # homo has the position of player in the 2D map
