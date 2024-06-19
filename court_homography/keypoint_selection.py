@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import ipdb
 import numpy as np
 import re
-from erosion import *
-from binarization import *
+from .erosion import *
 
 # Button parameters
 button_position = (50, 50)  # Position of the top-left corner of the button

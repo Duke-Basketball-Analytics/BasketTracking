@@ -16,7 +16,8 @@ from tools.plot_tools import plt_plot
 COLORS = {  # in HSV FORMAT
     'green': ([56, 50, 50], [100, 255, 255], [72, 200, 153]),  # NIGERIA
     'referee': ([0, 0, 0], [255, 35, 65], [120, 0, 0]),  # REFEREE
-    'white': ([0, 0, 190], [255, 26, 255], [255, 0, 255])  # USA
+    'white': ([0, 0, 190], [255, 26, 255], [255, 0, 255]), # USE / AWAY
+    'blue': ([56, 50, 50],[205, 255, 255],[149, 214, 82])  # DUKE
 }
 
 IOU_TH = 0.2
@@ -71,7 +72,7 @@ class FeetDetector:
         # return the intersection over union value
         return iou
 
-    def get_players_pos(self, M, M1, frame, timestamp, map_2d):
+    def get_players_pos(self, M, M1, frame, timestamp, map_2d, only_mask=False):
         warped_kpts = []
         outputs_seg = self.predictor_seg(frame)
 
@@ -91,7 +92,10 @@ class FeetDetector:
 
         '''v = Visualizer(frame[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1)
         out = v.draw_instance_predictions(outputs_seg["instances"].to("cpu"))
-        plt_plot(out.get_image()[:, :, ::-1], save_path="resources/debugging_images/player_detection_bbox.png")'''
+        plt_plot(out.get_image()[:, :, ::-1], save_path="resources/debugging_images/player_detection_bbox2.png")'''
+        
+        if only_mask:
+            return ppl
         
         indexes_ppl = [np.array(np.where(p == True)).T for p in ppl]
         # returns two np arrays per person, one for x one for y

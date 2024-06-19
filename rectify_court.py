@@ -62,7 +62,7 @@ def collage(frames, direction=1, plot=False):
     return current_mosaic
 
 
-def add_frame(frame, pano, pano_enhanced, plot=False):
+def add_frame(frame, pano, pano_enhanced, plot=False, file=""):
     sift = cv2.xfeatures2d.SIFT_create()  # sift instance
 
     # FINDING FEATURES
@@ -77,7 +77,9 @@ def add_frame(frame, pano, pano_enhanced, plot=False):
         if m.distance < 0.7 * n.distance:
             good.append(m)
     print(f"Number of good correspondences: {len(good)}")
-    if len(good) < 70: return pano
+    if len(good) < 70: 
+        print("Not enough matches found")
+        return pano
 
     # Finding an homography
     src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -89,12 +91,13 @@ def add_frame(frame, pano, pano_enhanced, plot=False):
                                  (pano.shape[1],
                                   pano.shape[0]))
 
-    if plot: plt_plot(result, "Warped new image")
+    if plot: plt_plot(result, title="Warped new image", 
+                      save_path=f"resources/OFFENSE-40_richmond/pano_enhanced_debug/warped_{file}.png")
 
     avg_pano = np.where(result < 100, pano_enhanced,
                         np.uint8(np.average(np.array([pano_enhanced, result]), axis=0, weights=[1, 0.7])))
 
-    if plot: plt_plot(avg_pano, "AVG new image")
+    #if plot: plt_plot(avg_pano, "AVG new image")
 
     return avg_pano
 
@@ -171,7 +174,7 @@ def rectangularize_court(pano, plot=False):
     return simple_court, corners
 
 
-def homography(rect, image, plot=False):
+def homography(rect, image, full=False, plot=False):
     bl, tl, tr, br = rect
     rect = np.array([tl, tr, br, bl], dtype="float32")
 
@@ -181,7 +184,12 @@ def homography(rect, image, plot=False):
 
     heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
     heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-    maxHeight = max(int(heightA), int(heightB)) + 700
+    #maxHeight = max(int(heightA), int(heightB)) + 700
+    #height to width ratio
+    if full:
+        maxHeight = int(0.5319 * maxWidth)
+    else: 
+        maxHeight = int(0.5319 * maxWidth*2)
 
     dst = np.array([
         [0, 0],
@@ -197,30 +205,55 @@ def homography(rect, image, plot=False):
 
 
 def rectify(pano_enhanced, corners, plot=False):
-    # TODO: adapt this in a way that works in any setting
-    panoL = pano_enhanced[:, :1870]
-    panoR = pano_enhanced[:, 1870:]
-    cornersL = np.array([corners[0], corners[1], [1865, 55], [1869, 389]])
-    cornersR = np.array(
-        [[0, 389],
-         [0, 55],
-         [corners[2][0] - 1870, corners[2][1]],
-         [corners[3][0] - 1870, corners[3][1]]
-         ])
-    M = homography(corners, pano_enhanced)[1]
+    centercourt = 2085
+    indices = np.argsort(corners[:, 0])
+    corners = corners[indices]
+    midLX = int((corners[3][0] - corners[0][0])/2)
+    midLY = int((corners[3][1] - corners[0][0])/2)+corners[0][0]
+    midUX = midLX
+    # straight line between upper left and upper right, find Y value at lower X position
+    # y = mx + b
+    midUY = int((corners[2][1]-corners[1][1])/(corners[2][0]-corners[1][0])*(midLX - corners[1][0]) + corners[1][1])
+
+    # Not sure how to calculate this one yet
+    midUX = midLX = centercourt
+
+    # panoL = pano_enhanced[:, :1870]
+    # panoR = pano_enhanced[:, 1870:]
+    # cornersL = np.array([corners[0], corners[1], [1865, 55], [1869, 389]])
+    # cornersR = np.array(
+    #     [[0, 389],
+    #      [0, 55],
+    #      [corners[2][0] - 1870, corners[2][1]],
+    #      [corners[3][0] - 1870, corners[3][1]]
+    #      ])
+    
+    panoL = pano_enhanced[:, :midLX]
+    panoR = pano_enhanced[:, midLX:]
+    cornersL = np.array([corners[0], corners[1], [midLX, midUY], [midLX, midLY]])
+    cornersR = np.array([[0, midLY], 
+                        [0, midUY], 
+                        [corners[2][0]-midLX, corners[2][1]],
+                        [corners[3][0]-midLX, corners[3][1]]])
+    
+    ipdb.set_trace()
+    M = homography(corners, pano_enhanced, full=True)[1]
     np.save("Rectify1.npy", M)
+    #np.save("OSU_rectify1.npy")
 
-    h1, ML = homography(cornersL, panoL)
+    h1, ML = homography(cornersL, panoL, full=False)
     np.save("RectifyL.npy", ML)
+    #np.save("OSU_rectifyL.npy")
 
-    h2, MR = homography(cornersR, panoR)
+    h2, MR = homography(cornersR, panoR, full=False)
     np.save("RectifyR.npy", MR)
+    #np.save("OSU_rectifyR.npy")
 
     # rectified = np.hstack((h1, cv2.resize(h2, (int((h2.shape[0] / h1.shape[0]) * h1.shape[1]), h1.shape[0]))))
     rectified = np.hstack((h1, cv2.resize(h2, (h1.shape[1], h1.shape[0]))))
-    cv2.imwrite("resources/rectified.png", rectified)
+    #cv2.imwrite("resources/rectified.png", rectified)
     if plot: plt_plot(cv2.cvtColor(rectified, cv2.COLOR_BGR2RGB),
-                      save_path="resources/debugging_images/rectified_court.png")
+                      save_path="resources/debugging_images/rectified_court_st.png")
     return rectified
         
 

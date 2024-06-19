@@ -13,6 +13,10 @@ flann = cv2.FlannBasedMatcher(index_params, search_params)
 
 class VideoHandler:
     def __init__(self, pano, video, ball_detector, feet_detector, map_2d):
+        # Anytime we use M1 we need to use Ms first with destination size == scale*pano dimensions
+        #self.Ms = np.load("resources/OFFENSE-40_richmond/scaling_matrix_033.npy")
+        # OSU_Pano_Rectify1 has output dimensions (960,540)
+        #self.M1 = np.load("resources/OFFENSE-40_richmond/OSU_Pano_Rectify1.npy")
         self.M1 = np.load("Rectify1.npy")
         self.sift = cv2.xfeatures2d.SIFT_create()
         self.pano = pano
@@ -31,9 +35,9 @@ class VideoHandler:
             if not ok:
                 break
             else:
-                if 0 <= time_index <= 230:
+                if 0 <= time_index <= 10:
 
-                    print("\r Computing DEMO: " + str(int(100 * time_index / 230)) + "%",
+                    print("\r Computing DEMO: " + str(int(100 * time_index / 10)) + "%",
                           flush=True, end='')
 
                     frame = frame[TOPCUT:, :]
@@ -46,7 +50,8 @@ class VideoHandler:
                     vis = np.vstack((frame, cv2.resize(map_2d_text, (frame.shape[1], frame.shape[1] // 2))))
 
                     #cv2.imshow("Tracking", vis)
-                    #plt_plot(vis, save_path="resources/debugging_images/run_detectors_frame1.png")
+                    if time_index % 1 == 0:
+                        plt_plot(vis, save_path=f"resources/OFFENSE-40_richmond/demo_frames/frame{time_index}.png")
                     writer.writeFrame(cv2.cvtColor(vis, cv2.COLOR_BGR2RGB))
 
                     k = cv2.waitKey(1) & 0xff

@@ -7,6 +7,10 @@ from ball_detect_track import BallDetectTrack
 from player import Player
 from rectify_court import *
 from video_handler import *
+
+BOTTOMCUT = 550
+TOPCUT = 100
+
 def binarization(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     adjusted = cv2.equalizeHist(gray)
@@ -54,16 +58,32 @@ def get_frames(video_path, mod):
 
     return frames
 
+def resize_img(img, scale = None):
+       # Resize the image
+    if scale:
+        #ipdb.set_trace()
+        h, w, _ = img.shape
+        w = int(w*scale)
+        h = int(h*scale)
+        dimensions = (w,h)
+        img = cv2.resize(img, dimensions)
+        
+    else:
+        dimensions = (960, 540)
+        img = cv2.resize(img, dimensions)
+    return img
+
 
 #####################################################################
 if __name__ == '__main__':
     # COURT REAL SIZES
     # 28m horizontal lines
     # 15m vertical lines
-    ipdb.set_trace()
     # loading already computed panoramas
     if os.path.exists('resources/OFFENSE-40_richmond/pano.png'):
         pano = cv2.imread("resources/OFFENSE-40_richmond/pano.png")
+    # if os.path.exists('resources/pano.png'):  
+    #     pano = cv2.imread("resources/pano.png")
     else:
         #central_frame = 36
         frames = get_frames('resources/debugging_videos/OFFENSE-40_richmond.mov', mod=3)
@@ -71,7 +91,7 @@ if __name__ == '__main__':
         central_frame = len(frames) - 45
         frames_flipped = [cv2.flip(frames[i], 1) for i in range(central_frame)]
         current_mosaic1 = collage(frames[central_frame:], direction=1, plot=True)
-        ipdb.set_trace()
+        #ipdb.set_trace()
         current_mosaic2 = collage(frames_flipped, direction=-1)
         pano = collage([cv2.flip(current_mosaic2, 1)[:, :-10], current_mosaic1])
         cv2.imwrite("resources/OFFENSE-40_richmond/tempcollage_1.png", cv2.flip(current_mosaic2, 1)[:, :-10])
@@ -82,33 +102,48 @@ if __name__ == '__main__':
     
     if os.path.exists('resources/OFFENSE-40_richmond/pano_enhanced.png'):
         pano_enhanced = cv2.imread("resources/OFFENSE-40_richmond/pano_enhanced.png")
+    # if os.path.exists('resources/pano_enhanced.png'):
+    #     pano_enhanced = cv2.imread("resources/pano_enhanced.png")
         plt_plot(pano, save_path=None, title="Panorama")
     else:
         pano_enhanced = pano
-        for file in os.listdir("resources/snapshots/"):
-            frame = cv2.imread("resources/snapshots/" + file)[TOPCUT:]
-            pano_enhanced = add_frame(frame, pano, pano_enhanced, plot=False)
+        for file in os.listdir("resources/OFFENSE-40_richmond/snapshots/"):
+            frame = cv2.imread("resources/OFFENSE-40_richmond/snapshots/" + file)[TOPCUT:BOTTOMCUT, :]
+            pano_enhanced = add_frame(frame, pano, pano_enhanced, plot=True, file=file)
         cv2.imwrite("resources/OFFENSE-40_richmond/pano_enhanced.png", pano_enhanced)
 
+
     ###################################
-    pano_enhanced = np.vstack((pano_enhanced,
-                               np.zeros((100, pano_enhanced.shape[1], pano_enhanced.shape[2]), dtype=pano.dtype)))
-    #cv2.imwrite("resources/debugging_images/pano_enhanced_padded.png", pano_enhanced)
+    #pano_enhanced = np.vstack((pano_enhanced,
+    #                           np.zeros((100, pano_enhanced.shape[1], pano_enhanced.shape[2]), dtype=pano.dtype)))
+    # plt_plot(pano_enhanced, title="Pano_enhanced",
+    #          save_path = "resources/OFFENSE-40_richmond/pano_enhanced_debug.png")
+    
     img = binarize_erode_dilate(pano_enhanced, plot=False)
     simplified_court, corners = (rectangularize_court(img, plot=False))
     simplified_court = 255 - np.uint8(simplified_court)
 
-    plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
-             save_path = "resources/OFFENSE-40_richmond/simplified_court_corner_detection.png")
+    indices = np.argsort(corners[:, 0])
+    corners = corners[indices]
+
+    # plt_plot(simplified_court, title="Corner Detection", cmap="gray", additional_points=corners, 
+    #          save_path = "resources/OFFENSE-40_richmond/simplified_court_corner_detection.png")
 
     rectified = rectify(pano_enhanced, corners, plot=False)
 
+    plt_plot(rectified, title="Rectified Image",
+             save_path = "resources/OFFENSE-40_richmond/rectified_image.png")
+    ipdb.set_trace()
     # correspondences map-pano
     map = cv2.imread("resources/2d_map.png")
-    scale = rectified.shape[0] / map.shape[0]
-    map = cv2.resize(map, (int(scale * map.shape[1]), int(scale * map.shape[0])))
-    resized = cv2.resize(rectified, (map.shape[1], map.shape[0]))
-    map = cv2.resize(map, (rectified.shape[1], rectified.shape[0]))
+    # scale = rectified.shape[0] / map.shape[0]
+    # map = cv2.resize(map, (int(scale * map.shape[1]), int(scale * map.shape[0])))
+    # resized = cv2.resize(rectified, (map.shape[1], map.shape[0]))
+    # map = cv2.resize(map, (rectified.shape[1], rectified.shape[0]))
+
+    # My M1 homography matrix maps directly to this size.
+    map = cv2.resize(map, (960,540))
+    
 
     cv2.imwrite("resources/OFFENSE-40_richmond/map.png", map)
 
@@ -116,7 +151,7 @@ if __name__ == '__main__':
 
     players = []
     for i in range(1, 6):
-        players.append(Player(i, 'green', hsv2bgr(COLORS['green'][2])))
+        players.append(Player(i, 'blue', hsv2bgr(COLORS['blue'][2])))
         players.append(Player(i, 'white', hsv2bgr(COLORS['white'][2])))
     players.append(Player(0, 'referee', hsv2bgr(COLORS['referee'][2])))
 
